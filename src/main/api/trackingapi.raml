@@ -1,0 +1,100 @@
+#%RAML 0.8
+title: Tracking API
+version: v1.0
+baseUri: http://localhost:8081/api/tracking/{version}
+protocols: [ HTTP, HTTPS ]
+mediaType: application/json
+
+
+schemas:
+ - post-track: |
+    {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type" : "object",
+        
+        "properties" : {
+          "owner" : {
+            "type" : "string"
+          },
+          "process" : {
+            "type" : "string"
+          },
+          "item" : {
+            "type" : "string"
+          },
+          "step" : {
+            "type" : "string"
+          },
+          "stage" : {
+            "type" : "string"
+          },
+          "stagetime" : {
+            "type" : "string"
+          }
+          
+        }   
+          
+      }
+      
+/track:
+  displayName: Track Item
+  post:
+    description: item posted to be tracked.
+    
+    body:
+      application/json:
+        schema: post-track
+        example: |
+          {
+            "owner": "zed",
+            "process": "girls-week",
+            "item": "with-us",
+            "step": "12-15-2013",
+            "stage": "started",
+            "stagetime": "12-15-2013 18:30:00"
+          }
+    
+    responses:
+      201:
+        description: Response with id of tracked item created.
+        body:
+          application/json:
+            example: |
+              {
+                "trackItemId" : "12393"              
+              }
+              
+
+/items:
+  description: collection of items
+      
+  /{itemId}:
+      get:
+        description: Returns a list of tracking stages for an item.
+        
+        responses:
+          200:
+            body:
+              application/json:
+                example: | 
+                   [
+                     {
+                        "owner" : "pinnacol-claims",
+                        "process" : "start-claim",
+                        "item" : "claimid=1234231",
+                        "step" : "claim-entered",
+                        "stage" : "started",
+                        "stagetime" : "01-22-2014 09:00:00"
+                     }
+                   ]
+           
+          
+      
+  
+  
+  
+  
+  
+  
+  
+  
