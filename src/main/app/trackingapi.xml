@@ -1,27 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd" version="CE-3.4.0">
-
-	 <spring:beans>
+    <spring:beans>
         <spring:bean id="mongoDb" class="com.mongodb.MongoClient" scope="singleton">
-            <spring:constructor-arg index="0" type="java.lang.String" value="localhost"/>
-            <spring:constructor-arg index="1" type="int" value="27017"/>
+            <spring:constructor-arg index="0" type="java.lang.String" value="localhost" />
+            <spring:constructor-arg index="1" type="int" value="27017" />
         </spring:bean>
-       
-       <spring:bean id="mongoInsert" class="com.dgz.tracking.process.InsertMongoComponent" scope="singleton">
-       		<spring:property name="db" ref="mongoDb"></spring:property>
-       		<spring:property name="dbName" value="mydb"></spring:property>
-       		<spring:property name="collectionName" value="trackitems"></spring:property>
-       </spring:bean>
-       <spring:bean id="itemCallable" class="com.dgz.tracking.components.ItemCallable">       
-       </spring:bean>
-        <spring:import resource="classpath:spring-beans.xml"/>
-       
+        <spring:bean id="mongoInsert" class="com.dgz.tracking.process.InsertMongoComponent" scope="singleton">
+            <spring:property name="db" ref="mongoDb" />
+            <spring:property name="dbName" value="mydb" />
+            <spring:property name="collectionName" value="trackitems" />
+        </spring:bean>
+        <spring:bean id="itemCallable" class="com.dgz.tracking.components.ItemCallable" />
+        <spring:import resource="classpath:spring-beans.xml" />
     </spring:beans>
-
     <apikit:config name="trackingapi-config" raml="trackingapi.raml" consoleEnabled="true" consolePath="console" doc:name="Router" />
     <apikit:mapping-exception-strategy name="trackingapi-apiKitGlobalExceptionMapping">
         <apikit:mapping statusCode="404">
@@ -51,7 +46,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
         </apikit:mapping>
     </apikit:mapping-exception-strategy>
     <flow name="trackingapi-main" doc:name="trackingapi-main">
-        <http:inbound-endpoint address="http://localhost:8081/api/tracking" doc:name="HTTP" />
+        <http:inbound-endpoint address="http://localhost:8081/api/tracking/v1.0" doc:name="HTTP" />
         <apikit:router config-ref="trackingapi-config" doc:name="APIkit Router" />
         <exception-strategy ref="trackingapi-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy" />
     </flow>
@@ -61,25 +56,26 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
     </flow>
     <flow name="post:/track:trackingapi-config" doc:name="post:/track:trackingapi-config">
         <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
-        <json:json-to-object-transformer returnClass="com.dgz.tracking.dto.Item" doc:name="JSON to Object"/>
+        <json:json-to-object-transformer returnClass="com.dgz.tracking.dto.Item" doc:name="JSON to Object" />
         <logger level="INFO" message="#[payload]" doc:name="Logger" />
         <component doc:name="Java">
-        	<spring-object bean="itemCallable"/>
+            <spring-object bean="itemCallable" />
         </component>
-        <json:object-to-json-transformer sourceClass="com.dgz.tracking.dto.Item" doc:name="Object to JSON"/>
+        <json:object-to-json-transformer sourceClass="com.dgz.tracking.dto.Item" doc:name="Object to JSON" />
         <!-- TODO: convert item to java object, add created time stamp and then convert object back to json for insert -->
-         <component doc:name="Mongo Insert">
-        	<spring-object bean="mongoInsert" />
+        <component doc:name="Mongo Insert">
+            <spring-object bean="mongoInsert" />
         </component>
-        <logger message="#[message.payload] in post track info" level="INFO" doc:name="Logger"/>
+        <logger message="#[message.payload] in post track info" level="INFO" doc:name="Logger" />
         <set-payload value="{&#xA;  &quot;trackItemId&quot; : &quot;#[message.payload]&quot;              &#xA;}" doc:name="Set Payload" />
     </flow>
     <flow name="get:/items/{itemId}:trackingapi-config" doc:name="get:/items/{itemId}:trackingapi-config">
-   		<set-payload value="#[msg='test '; msg += server.dateTime.toString()]" doc:name="Set Payload"/>
+        <set-payload value="#[msg='test '; msg += server.dateTime.toString()]" doc:name="Set Payload" />
         <logger level="INFO" doc:name="Logger" message="#[message.payload]" />
-       
-         
-        <set-payload value="[&#xA;  {&#xA;     &quot;owner&quot; : &quot;pinnacol-claims&quot;,&#xA;     &quot;process&quot; : &quot;start-claim&quot;,&#xA;     &quot;item&quot; : &quot;claimid=1234231&quot;,&#xA;     &quot;step&quot; : &quot;claim-entered&quot;,&#xA;     &quot;stage&quot; : &quot;started&quot;,&#xA;     &quot;stagetime&quot; : &quot;01-22-2014 09:00:00&quot;&#xA;  }&#xA;]" doc:name="Set Payload"/>
+        <set-payload value="[&#xA;  {&#xA;     &quot;owner&quot; : &quot;pinnacol-claims&quot;,&#xA;     &quot;process&quot; : &quot;start-claim&quot;,&#xA;     &quot;item&quot; : &quot;claimid=1234231&quot;,&#xA;     &quot;step&quot; : &quot;claim-entered&quot;,&#xA;     &quot;stage&quot; : &quot;started&quot;,&#xA;     &quot;stagetime&quot; : &quot;01-22-2014 09:00:00&quot;&#xA;  }&#xA;]" doc:name="Set Payload" />
     </flow>
-   
+    <flow name="post:/testPost:trackingapi-config" doc:name="post:/testPost:trackingapi-config">
+        <set-property propertyName="Content-Type" value="application/xml" doc:name="Property" />
+        <logger message="logging in testPOST!" level="INFO" doc:name="Logger"/>
+    </flow>
 </mule>

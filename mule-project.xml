@@ -6,4 +6,6 @@
     <muleExtension name="APIkit" qualifier="org.mule.tooling.apikit"/>
     <muleExtension name="APIkit" qualifier="org.mule.tooling.apikit"/>
     <muleExtension name="APIkit" qualifier="org.mule.tooling.apikit"/>
+    <muleExtension name="Mongo DB" qualifier="org.mule.tooling.ui.contribution.mongo"/>
+    <muleExtension name="APIkit" qualifier="org.mule.tooling.apikit"/>
 </mule-project>
